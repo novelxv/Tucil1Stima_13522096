@@ -6,15 +6,28 @@
 #include <utility>
 using namespace std;
 
+struct Token{
+    string value;
+    int col;
+    int row;
+    int position_in_buffer;
+};
+
+struct Sequence{
+    vector<Token> sequence;
+    int reward;
+    int first_token_position_in_buffer;
+    int last_token_position_in_buffer;
+};
+
 struct Data{
     int buffer_size;
     int matrix_width;
     int matrix_height;
-    vector<vector<string>> matrix;
+    vector<vector<Token>> matrix;
     int num_of_seq;
-    vector<pair<string, int>> sequences;
+    vector<Sequence> sequences;
 };
-
 
 /*
  * @brief Read from file and return a vector of strings
@@ -43,7 +56,6 @@ vector<string> readFromFile(string filename){
 Data readDataFromFile(string filename){
     vector<string> lines = readFromFile(filename);
     Data data;
-    string seq;
     int line_number = 1;
     for (const auto& line : lines){
         if (line_number == 1){
@@ -55,9 +67,9 @@ Data readDataFromFile(string filename){
         }
         else if (3 <= line_number && line_number <= data.matrix_height + 2){
             istringstream iss(line);
-            string token;
-            vector<string> row;
-            while (iss >> token){
+            Token token;
+            vector<Token> row;
+            while (iss >> token.value){
                 row.push_back(token);
             }
             data.matrix.push_back(row);
@@ -67,19 +79,33 @@ Data readDataFromFile(string filename){
         }
         else{
             if (data.matrix_height % 2 == 0){
+                static Sequence seq;
                 if (line_number % 2 == 0){
-                    seq = line;
+                    istringstream iss(line);
+                    Token token;
+                    while (iss >> token.value){
+                        seq.sequence.push_back(token);
+                    }
                 }
                 else{
-                    data.sequences.push_back(make_pair(seq, stoi(line)));
+                    seq.reward = stoi(line);
+                    data.sequences.push_back(seq);
+                    seq = Sequence();
                 }
             }
             else{
+                static Sequence seq;
                 if (line_number % 2 != 0){
-                    seq = line;
+                    istringstream iss(line);
+                    Token token;
+                    while (iss >> token.value){
+                        seq.sequence.push_back(token);
+                    }
                 }
                 else{
-                    data.sequences.push_back(make_pair(seq, stoi(line)));
+                    seq.reward = stoi(line);
+                    data.sequences.push_back(seq);
+                    seq = Sequence();
                 }
             }
         }
@@ -90,18 +116,26 @@ Data readDataFromFile(string filename){
     return data;
 }
 
-void printArray(const vector<string>& arr){
-    for (const auto& elem : arr){
-        cout << elem << " ";
+void printArray(const vector<Token>& arr){
+    for (const auto& el : arr){
+        cout << el.value << " ";
     }
     cout << endl;
 }
 
-void printMatrix(const vector<vector<string>>& matrix){
+void printMatrix(const vector<vector<Token>>& matrix){
     for (const auto& row : matrix){
         printArray(row);
     }
 }
+
+// vector<vector<string>> generateAllPossibleSolutions(const Data& data){
+//     vector<vector<string>> solutions;
+//     vector<string> solution;
+//     int length = data.buffer_size;
+
+//     return solutions;
+// }
 
 int main(){
     string filename = "input.txt";
@@ -111,12 +145,13 @@ int main(){
     // printMatrix(data.matrix);
     // cout << "Buffer Size: " << data.buffer_size << endl;
     // cout << "Matrix Width: " << data.matrix_width << " Matrix Height: " << data.matrix_height << endl;
-    // vector<pair<string, int>> sequences = data.sequences;
-    // for (const auto& seq : sequences){
-    //     cout << "Seq: " << seq.first << " Reward: " << seq.second << endl;
+    // cout << "Number of Sequences: " << data.num_of_seq << endl;
+    // for (const auto& seq : data.sequences){
+    //     printArray(seq.sequence);
+    //     cout << "Reward: " << seq.reward << endl;
     // }
-    // auto el = sequences[0];
-    // cout << "Seq1: " << el.first << " Reward1: " << el.second << endl;
+    // auto &el = data.sequences[0];
+    // printArray(el.sequence);
 
     return 0;
 }
