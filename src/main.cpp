@@ -4,20 +4,23 @@
 #include <vector>
 #include <sstream>
 #include <utility>
+#include <functional>
 using namespace std;
 
 struct Token{
-    string value;
-    int col;
-    int row;
-    int position_in_buffer;
+    string value = "";
+    int row = -1;
+    int col = -1;
+    bool is_selected = false;
+    int position_in_buffer = -1;
 };
 
 struct Sequence{
-    vector<Token> sequence;
-    int reward;
-    int first_token_position_in_buffer;
-    int last_token_position_in_buffer;
+    vector<Token> sequence = {};
+    int reward = 0;
+    bool in_buffer = false;
+    int first_token_position_in_buffer = -1;
+    int last_token_position_in_buffer = -1;
 };
 
 struct Data{
@@ -45,8 +48,7 @@ vector<string> readFromFile(string filename){
             lines.push_back(line);
         }
         file.close();
-    }
-    else{
+    } else{
         cout << "Unable to open file";
     }
 
@@ -60,24 +62,23 @@ Data readDataFromFile(string filename){
     for (const auto& line : lines){
         if (line_number == 1){
             data.buffer_size = stoi(line);
-        }
-        else if (line_number == 2){
+        } else if (line_number == 2){
             istringstream iss(line);
             iss >> data.matrix_width >> data.matrix_height;
-        }
-        else if (3 <= line_number && line_number <= data.matrix_height + 2){
+        } else if (3 <= line_number && line_number <= data.matrix_height + 2){
             istringstream iss(line);
             Token token;
             vector<Token> row;
+            int col = 0;
             while (iss >> token.value){
+                token.row = line_number - 3;
+                token.col = col++;
                 row.push_back(token);
             }
             data.matrix.push_back(row);
-        }
-        else if (line_number == data.matrix_height + 3){
+        } else if (line_number == data.matrix_height + 3){
             data.num_of_seq = stoi(line);
-        }
-        else{
+        } else{
             if (data.matrix_height % 2 == 0){
                 static Sequence seq;
                 if (line_number % 2 == 0){
@@ -86,14 +87,12 @@ Data readDataFromFile(string filename){
                     while (iss >> token.value){
                         seq.sequence.push_back(token);
                     }
-                }
-                else{
+                } else{
                     seq.reward = stoi(line);
                     data.sequences.push_back(seq);
                     seq = Sequence();
                 }
-            }
-            else{
+            } else{
                 static Sequence seq;
                 if (line_number % 2 != 0){
                     istringstream iss(line);
@@ -101,8 +100,7 @@ Data readDataFromFile(string filename){
                     while (iss >> token.value){
                         seq.sequence.push_back(token);
                     }
-                }
-                else{
+                } else{
                     seq.reward = stoi(line);
                     data.sequences.push_back(seq);
                     seq = Sequence();
@@ -129,13 +127,42 @@ void printMatrix(const vector<vector<Token>>& matrix){
     }
 }
 
-// vector<vector<string>> generateAllPossibleSolutions(const Data& data){
-//     vector<vector<string>> solutions;
-//     vector<string> solution;
-//     int length = data.buffer_size;
+vector<vector<Token>> generateAllPossibleSolutions(Data& data){
+    vector<vector<Token>> solutions;
+    function<void(vector<Token>, int, int, bool)> generateSolutions = [&](vector<Token> current_solution, int current_row, int current_col, bool is_horizontal){
+        if (current_solution.size() == data.buffer_size){
+            solutions.push_back(current_solution);
+            return;
+        }
+        if (is_horizontal){
+            for (int i = 0; i < data.matrix_width; i++){
+                if (!data.matrix[current_row][i].is_selected){
+                    data.matrix[current_row][i].is_selected = true;
+                    data.matrix[current_row][i].position_in_buffer = current_solution.size();
+                    current_solution.push_back(data.matrix[current_row][i]);
+                    generateSolutions(current_solution, current_row, i, false);
+                    current_solution.pop_back();
+                    data.matrix[current_row][i].is_selected = false;
+                }
+            }
+        } else{
+            for (int i = 0; i < data.matrix_height; i++){
+                if (!data.matrix[i][current_col].is_selected){
+                    data.matrix[i][current_col].is_selected = true;
+                    data.matrix[i][current_col].position_in_buffer = current_solution.size();
+                    current_solution.push_back(data.matrix[i][current_col]);
+                    generateSolutions(current_solution, i, current_col, true);
+                    current_solution.pop_back();
+                    data.matrix[i][current_col].is_selected = false;
+                }
+            }
+        }
+    };
+    
+    generateSolutions({}, 0, 0, true);
 
-//     return solutions;
-// }
+    return solutions;
+}
 
 int main(){
     string filename = "input.txt";
@@ -152,6 +179,14 @@ int main(){
     // }
     // auto &el = data.sequences[0];
     // printArray(el.sequence);
+
+    // debug test generateAllPossibleSolutions
+    vector<vector<Token>> solutions = generateAllPossibleSolutions(data);
+    // for (const auto& solution : solutions){
+    //     printArray(solution);
+    // }
+    // print atribut of first token in first solution
+    // cout << "First token in first solution: " << solutions[0][2].value << " " << solutions[0][2].row << " " << solutions[0][2].col << " " << solutions[0][2].is_selected << " " << solutions[0][2].position_in_buffer << endl;
 
     return 0;
 }
