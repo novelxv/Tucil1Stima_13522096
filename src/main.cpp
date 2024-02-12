@@ -164,6 +164,27 @@ vector<vector<Token>> generateAllPossibleSolutions(Data& data){
     return solutions;
 }
 
+bool checkSequenceInSolution(vector<Token>& solution, Sequence& sequence){
+    for (int i = 0; i <= solution.size() - sequence.sequence.size(); i++){
+        bool sequenceFound = true;
+        for (int j = 0; j < sequence.sequence.size(); j++){
+            if (solution[i + j].value != sequence.sequence[j].value){
+                sequenceFound = false;
+                break;
+            }
+        }
+        if (sequenceFound){
+            sequence.in_buffer = true;
+            sequence.first_token_position_in_buffer = i;
+            sequence.last_token_position_in_buffer = i + sequence.sequence.size() - 1;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
 int main(){
     string filename = "input.txt";
     Data data = readDataFromFile(filename);
@@ -187,6 +208,12 @@ int main(){
     // }
     // print atribut of first token in first solution
     // cout << "First token in first solution: " << solutions[0][2].value << " " << solutions[0][2].row << " " << solutions[0][2].col << " " << solutions[0][2].is_selected << " " << solutions[0][2].position_in_buffer << endl;
+    // printArray(solutions[0]);
+    // printArray(data.sequences[0].sequence);
+    // // debug test checkSequenceInSolution
+    // bool is_in_sol = checkSequenceInSolution(solutions[0], data.sequences[0]);
+    // cout << "Is in solution: " << is_in_sol << endl;
+    // cout << "First token in buffer: " << data.sequences[0].first_token_position_in_buffer << " Last token in buffer: " << data.sequences[0].last_token_position_in_buffer << endl;
 
     return 0;
 }
