@@ -32,6 +32,12 @@ struct Data{
     vector<Sequence> sequences;
 };
 
+struct Solution{
+    vector<Token> solution = {};
+    int reward = 0;
+    int last_token_position_in_buffer = -1;
+};
+
 /*
  * @brief Read from file and return a vector of strings
  * @param filename: name of the file to read from
@@ -183,7 +189,41 @@ bool checkSequenceInSolution(vector<Token>& solution, Sequence& sequence){
     return false;
 }
 
+Solution evaluateSolutionAndCalculateReward(vector<Token>& solution, vector<Sequence>& sequences){
+    Solution sol;
+    sol.solution = solution;
+    for (auto& sequence : sequences){
+        if (checkSequenceInSolution(solution, sequence)){
+            sol.reward += sequence.reward;
+            if (sol.last_token_position_in_buffer < sequence.last_token_position_in_buffer){
+                sol.last_token_position_in_buffer = sequence.last_token_position_in_buffer;
+            }
+        }
+    }
+    if (sol.last_token_position_in_buffer != -1){
+        sol.solution.erase(sol.solution.begin() + sol.last_token_position_in_buffer + 1, sol.solution.end());
+    } else{
+        sol.last_token_position_in_buffer = sol.solution.size();
+    }
+    return sol;
+}
 
+Solution getOptimalSolution(vector<vector<Token>>& solutions, Data& data){
+    Solution optimal_solution;
+    optimal_solution.last_token_position_in_buffer = data.buffer_size;
+    for (auto& solution : solutions){
+        Solution sol = evaluateSolutionAndCalculateReward(solution, data.sequences);
+        if (sol.reward > optimal_solution.reward){
+            optimal_solution = sol;
+        } else if (sol.reward == optimal_solution.reward && sol.last_token_position_in_buffer < optimal_solution.last_token_position_in_buffer){
+            optimal_solution = sol;
+        }
+    }
+    if (optimal_solution.reward == 0){
+        optimal_solution.solution = solutions[0];
+    }
+    return optimal_solution;
+}
 
 int main(){
     string filename = "input.txt";
@@ -214,6 +254,10 @@ int main(){
     // bool is_in_sol = checkSequenceInSolution(solutions[0], data.sequences[0]);
     // cout << "Is in solution: " << is_in_sol << endl;
     // cout << "First token in buffer: " << data.sequences[0].first_token_position_in_buffer << " Last token in buffer: " << data.sequences[0].last_token_position_in_buffer << endl;
+
+    // debug test getOptimalSolution
+    Solution optimal_solution = getOptimalSolution(solutions, data);
+    printArray(optimal_solution.solution);
 
     return 0;
 }
