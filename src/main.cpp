@@ -348,7 +348,7 @@ void saveSolutionToFile(const Solution& solution){
 }
 
 int main(){
-    cout << "Welcome to 096 Beach Protocol Game!\n" << endl;
+    cout << "Welcome to 096 Breach Protocol Game!\n" << endl;
     
     cout << "Choose input mode:\n";
     cout << "1. Input through Command Line Interface (CLI)\n";
@@ -372,36 +372,10 @@ int main(){
         return 0;
     }
 
-    // string filename = "input.txt";
-    // Data data = readDataFromFile(filename);
-
-    // debug print all data
-    // printMatrix(data.matrix);
-    // cout << "Buffer Size: " << data.buffer_size << endl;
-    // cout << "Matrix Width: " << data.matrix_width << " Matrix Height: " << data.matrix_height << endl;
-    // cout << "Number of Sequences: " << data.num_of_seq << endl;
-    // for (const auto& seq : data.sequences){
-    //     printArray(seq.sequence);
-    //     cout << "Reward: " << seq.reward << endl;
-    // }
-    // auto &el = data.sequences[0];
-    // printArray(el.sequence);
     auto start = chrono::high_resolution_clock::now();
-    // debug test generateAllPossibleSolutions
-    vector<vector<Token>> solutions = generateAllPossibleSolutions(data);
-    // for (const auto& solution : solutions){
-    //     printArray(solution);
-    // }
-    // print atribut of first token in first solution
-    // cout << "First token in first solution: " << solutions[0][2].value << " " << solutions[0][2].row << " " << solutions[0][2].col << " " << solutions[0][2].is_selected << " " << solutions[0][2].position_in_buffer << endl;
-    // printArray(solutions[0]);
-    // printArray(data.sequences[0].sequence);
-    // // debug test checkSequenceInSolution
-    // bool is_in_sol = checkSequenceInSolution(solutions[0], data.sequences[0]);
-    // cout << "Is in solution: " << is_in_sol << endl;
-    // cout << "First token in buffer: " << data.sequences[0].first_token_position_in_buffer << " Last token in buffer: " << data.sequences[0].last_token_position_in_buffer << endl;
 
-    // debug test getOptimalSolution
+    vector<vector<Token>> solutions = generateAllPossibleSolutions(data);
+    
     Solution optimal_solution = getOptimalSolution(solutions, data);
     displaySolution(optimal_solution);
 
