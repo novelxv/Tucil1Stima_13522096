@@ -6,6 +6,7 @@
 #include <utility>
 #include <functional>
 #include <random>
+#include <chrono>
 using namespace std;
 
 struct Token{
@@ -158,7 +159,7 @@ Data generateGame(int num_unique_tokens, vector<string>& tokens, int buffer_size
 
 Data inputFromCLI(){
     int num_unique_tokens;
-    cout << "Enter number of unique tokens: ";
+    cout << "\nEnter number of unique tokens: ";
     cin >> num_unique_tokens;
 
     vector<string> tokens(num_unique_tokens);
@@ -305,10 +306,45 @@ Solution getOptimalSolution(vector<vector<Token>>& solutions, Data& data){
             optimal_solution = sol;
         }
     }
-    if (optimal_solution.reward == 0){
-        optimal_solution.solution = solutions[0];
+    if (optimal_solution.last_token_position_in_buffer == data.buffer_size){
+        optimal_solution.solution = {};
     }
     return optimal_solution;
+}
+
+void displaySolution(const Solution& solution){
+    cout << "\n-------------------- OPTIMAL SOLUTION --------------------\n";
+    cout << "Reward: " << solution.reward << endl;
+    cout << "Solution: ";
+    printArray(solution.solution);
+    cout << "Coordinates:\n";
+    for (const auto& token : solution.solution){
+        cout << token.col + 1 << ", " << token.row + 1 << endl;
+    }
+}
+
+void saveSolutionToFile(const Solution& solution){
+    cout << "Enter filename: ";
+    string filename;
+    cin >> filename;
+    string filepath = "../test/" + filename;
+    ofstream file(filepath);    
+    if (file.is_open()){
+        file << "Reward: " << solution.reward << endl;
+        file << "Solution: ";
+        for (const auto& token : solution.solution){
+            file << token.value << " ";
+        }
+        file << "\nCoordinates:\n";
+        for (const auto& token : solution.solution){
+            file << token.col + 1 << ", " << token.row + 1 << endl;
+        }
+        file.close();
+        cout << "\nSolution saved to " << filepath << endl;
+        cout << "\nThanks for playing. Goodbye!" << endl;
+    } else{
+        cout << "\nUnable to open file";
+    }
 }
 
 int main(){
@@ -328,11 +364,11 @@ int main(){
         displayGameData(data);
     } else if (mode == 2){
         string filename;
-        cout << "Enter filename: ";
+        cout << "\nEnter filename: ";
         cin >> filename;
         data = readDataFromFile(filename);
     } else{
-        cout << "Invalid input mode" << endl;
+        cout << "\nInvalid input mode" << endl;
         return 0;
     }
 
@@ -350,7 +386,7 @@ int main(){
     // }
     // auto &el = data.sequences[0];
     // printArray(el.sequence);
-
+    auto start = chrono::high_resolution_clock::now();
     // debug test generateAllPossibleSolutions
     vector<vector<Token>> solutions = generateAllPossibleSolutions(data);
     // for (const auto& solution : solutions){
@@ -367,8 +403,20 @@ int main(){
 
     // debug test getOptimalSolution
     Solution optimal_solution = getOptimalSolution(solutions, data);
-    printArray(optimal_solution.solution);
-    cout << "Reward: " << optimal_solution.reward << endl;
+    displaySolution(optimal_solution);
+
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    cout << "\nExecution time: " << duration.count() << " ms\n";
+
+    cout << "\nDo you want to save the solution to a .txt file? (y/n): ";
+    string answer;
+    cin >> answer;
+    if (answer == "y"){
+        saveSolutionToFile(optimal_solution);
+    } else{
+        cout << "\nThanks for playing. Goodbye!" << endl;
+    }
 
     return 0;
 }
