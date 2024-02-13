@@ -1,0 +1,7 @@
+Reward: 30
+Solution: 55 1C BD 55 
+Coordinates:
+2, 1
+2, 4
+1, 4
+1, 2

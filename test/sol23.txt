@@ -1,0 +1,9 @@
+Reward: 161
+Solution: AA AA DD BB AA CC 
+Coordinates:
+4, 1
+4, 2
+5, 2
+5, 3
+1, 3
+1, 1
