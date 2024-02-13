@@ -9,6 +9,8 @@
 #include <chrono>
 using namespace std;
 
+/* STRUCTS */
+
 struct Token{
     string value = "";
     int row = -1;
@@ -63,6 +65,11 @@ vector<string> readFromFile(string filename){
     return lines;
 }
 
+/*
+ * @brief Read data from file and return a Data object
+ * @param filename: name of the file to read from
+ * @return Data object
+ */
 Data readDataFromFile(string filename){
     vector<string> lines = readFromFile(filename);
     Data data;
@@ -122,6 +129,17 @@ Data readDataFromFile(string filename){
     return data;
 }
 
+/*
+ * @brief Generate a Data object for the game
+ * @param num_unique_tokens: number of unique tokens
+ * @param tokens: vector of unique tokens
+ * @param buffer_size: size of the buffer
+ * @param matrix_width: width of the matrix
+ * @param matrix_height: height of the matrix
+ * @param num_sequences: number of sequences
+ * @param max_sequence_length: maximum length of a sequence
+ * @return Data object
+ */
 Data generateGame(int num_unique_tokens, vector<string>& tokens, int buffer_size, int matrix_width, int matrix_height, int num_sequences, int max_sequence_length){
     random_device rd;
     mt19937 gen(rd());
@@ -157,6 +175,10 @@ Data generateGame(int num_unique_tokens, vector<string>& tokens, int buffer_size
     return gameData;
 }
 
+/*
+ * @brief Input data from Command Line Interface (CLI)
+ * @return Data object
+ */
 Data inputFromCLI(){
     int num_unique_tokens;
     cout << "\nEnter number of unique tokens: ";
@@ -189,6 +211,10 @@ Data inputFromCLI(){
     return gameData;
 }
 
+/*
+ * @brief Display game data
+ * @param gameData: Data object
+ */
 void displayGameData(const Data& gameData){
     cout << "\nMatrix:\n";
     for (const auto& row : gameData.matrix){
@@ -220,6 +246,11 @@ void printMatrix(const vector<vector<Token>>& matrix){
     }
 }
 
+/*
+ * @brief Generate all possible solutions
+ * @param data: Data object
+ * @return vector of vector of Tokens
+ */
 vector<vector<Token>> generateAllPossibleSolutions(Data& data){
     vector<vector<Token>> solutions;
     function<void(vector<Token>, int, int, bool)> generateSolutions = [&](vector<Token> current_solution, int current_row, int current_col, bool is_horizontal){
@@ -257,6 +288,12 @@ vector<vector<Token>> generateAllPossibleSolutions(Data& data){
     return solutions;
 }
 
+/*
+ * @brief Check if a sequence is in a solution
+ * @param solution: vector of Tokens
+ * @param sequence: Sequence object
+ * @return true if sequence is in solution, false otherwise
+ */
 bool checkSequenceInSolution(vector<Token>& solution, Sequence& sequence){
     for (int i = 0; i <= solution.size() - sequence.sequence.size(); i++){
         bool sequenceFound = true;
@@ -276,6 +313,12 @@ bool checkSequenceInSolution(vector<Token>& solution, Sequence& sequence){
     return false;
 }
 
+/*
+ * @brief Evaluate a solution and calculate reward
+ * @param solution: vector of Tokens
+ * @param sequences: vector of Sequences
+ * @return Solution object
+ */
 Solution evaluateSolutionAndCalculateReward(vector<Token>& solution, vector<Sequence>& sequences){
     Solution sol;
     sol.solution = solution;
@@ -295,6 +338,12 @@ Solution evaluateSolutionAndCalculateReward(vector<Token>& solution, vector<Sequ
     return sol;
 }
 
+/*
+ * @brief Get the optimal solution
+ * @param solutions: vector of vector of Tokens
+ * @param data: Data object
+ * @return Solution object
+ */
 Solution getOptimalSolution(vector<vector<Token>>& solutions, Data& data){
     Solution optimal_solution;
     optimal_solution.last_token_position_in_buffer = data.buffer_size;
@@ -312,6 +361,10 @@ Solution getOptimalSolution(vector<vector<Token>>& solutions, Data& data){
     return optimal_solution;
 }
 
+/*
+ * @brief Display the optimal solution
+ * @param solution: Solution object
+ */
 void displaySolution(const Solution& solution){
     cout << "\n-------------------- OPTIMAL SOLUTION --------------------\n";
     cout << "Reward: " << solution.reward << endl;
@@ -323,6 +376,10 @@ void displaySolution(const Solution& solution){
     }
 }
 
+/*
+ * @brief Save the optimal solution to a .txt file
+ * @param solution: Solution object
+ */
 void saveSolutionToFile(const Solution& solution){
     cout << "Enter filename: ";
     string filename;
