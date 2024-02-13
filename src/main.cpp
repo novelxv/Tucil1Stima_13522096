@@ -126,7 +126,7 @@ Data generateGame(int num_unique_tokens, vector<string>& tokens, int buffer_size
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> dis(0, num_unique_tokens - 1);
-    uniform_int_distribution<> dis_seq(1, max_sequence_length);
+    uniform_int_distribution<> dis_seq(2, max_sequence_length);
     uniform_int_distribution<> dis_reward(1, 100);
 
     Data gameData;
