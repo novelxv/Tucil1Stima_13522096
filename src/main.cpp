@@ -5,6 +5,7 @@
 #include <sstream>
 #include <utility>
 #include <functional>
+#include <random>
 using namespace std;
 
 struct Token{
@@ -120,6 +121,91 @@ Data readDataFromFile(string filename){
     return data;
 }
 
+Data generateGame(int num_unique_tokens, vector<string>& tokens, int buffer_size, int matrix_width, int matrix_height, int num_sequences, int max_sequence_length){
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, num_unique_tokens - 1);
+    uniform_int_distribution<> dis_seq(1, max_sequence_length);
+    uniform_int_distribution<> dis_reward(1, 100);
+
+    Data gameData;
+    gameData.buffer_size = buffer_size;
+    gameData.matrix_width = matrix_width;
+    gameData.matrix_height = matrix_height;
+    gameData.num_of_seq = num_sequences;
+
+    gameData.matrix.resize(matrix_height, vector<Token>(matrix_width));
+    for (int i = 0; i < matrix_height; ++i){
+        for (int j = 0; j < matrix_width; ++j){
+            gameData.matrix[i][j].value = tokens[dis(gen)];
+            gameData.matrix[i][j].row = i;
+            gameData.matrix[i][j].col = j;
+        }
+    }
+
+    gameData.sequences.resize(num_sequences);
+    for (int i = 0; i < num_sequences; ++i){
+        int sequence_length = dis_seq(gen);
+        gameData.sequences[i].sequence.resize(sequence_length);
+        for (int j = 0; j < sequence_length; ++j){
+            gameData.sequences[i].sequence[j].value = tokens[dis(gen)];
+        }
+        gameData.sequences[i].reward = dis_reward(gen);
+    }
+
+    return gameData;
+}
+
+Data inputFromCLI(){
+    int num_unique_tokens;
+    cout << "Enter number of unique tokens: ";
+    cin >> num_unique_tokens;
+
+    vector<string> tokens(num_unique_tokens);
+    cout << "Enter unique tokens: ";
+    for (int i = 0; i < num_unique_tokens; ++i){
+        cin >> tokens[i];
+    }
+
+    int buffer_size;
+    cout << "Enter buffer size: ";
+    cin >> buffer_size;
+
+    int matrix_width, matrix_height;
+    cout << "Enter matrix width and height: ";
+    cin >> matrix_width >> matrix_height;
+
+    int num_sequences;
+    cout << "Enter number of sequences: ";
+    cin >> num_sequences;
+
+    int max_sequence_length;
+    cout << "Enter max sequence length: ";
+    cin >> max_sequence_length;
+
+    Data gameData = generateGame(num_unique_tokens, tokens, buffer_size, matrix_width, matrix_height, num_sequences, max_sequence_length);
+
+    return gameData;
+}
+
+void displayGameData(const Data& gameData){
+    cout << "\nMatrix:\n";
+    for (const auto& row : gameData.matrix){
+        for (const auto& token : row){
+            cout << token.value << ' ';
+        }
+        cout << '\n';
+    }
+
+    cout << "\nSequences and Rewards:\n";
+    for (const auto& sequence : gameData.sequences){
+        for (const auto& token : sequence.sequence){
+            cout << token.value << ' ';
+        }
+        cout << ": " << sequence.reward << '\n';
+    }
+}
+
 void printArray(const vector<Token>& arr){
     for (const auto& el : arr){
         cout << el.value << " ";
@@ -226,8 +312,32 @@ Solution getOptimalSolution(vector<vector<Token>>& solutions, Data& data){
 }
 
 int main(){
-    string filename = "input.txt";
-    Data data = readDataFromFile(filename);
+    cout << "Welcome to 096 Beach Protocol Game!\n" << endl;
+    
+    cout << "Choose input mode:\n";
+    cout << "1. Input through Command Line Interface (CLI)\n";
+    cout << "2. Input through file\n";
+    cout << "Enter your choice (1 or 2): ";
+
+    int mode;
+    cin >> mode;
+
+    Data data;
+    if (mode == 1){
+        data = inputFromCLI();
+        displayGameData(data);
+    } else if (mode == 2){
+        string filename;
+        cout << "Enter filename: ";
+        cin >> filename;
+        data = readDataFromFile(filename);
+    } else{
+        cout << "Invalid input mode" << endl;
+        return 0;
+    }
+
+    // string filename = "input.txt";
+    // Data data = readDataFromFile(filename);
 
     // debug print all data
     // printMatrix(data.matrix);
@@ -258,6 +368,7 @@ int main(){
     // debug test getOptimalSolution
     Solution optimal_solution = getOptimalSolution(solutions, data);
     printArray(optimal_solution.solution);
+    cout << "Reward: " << optimal_solution.reward << endl;
 
     return 0;
 }
